@@ -16,7 +16,7 @@ jobs:
     #  url: "https://github.com/marketplace/actions/shellchecker"
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: "${{ false && github.run_attempt == '1' && github.ref_type == 'tag' && github.ref_name != '' }}"
+    if: "${{ github.run_attempt == '1' && github.ref_type == 'tag' && github.ref_name != '' }}"
     concurrency:
       group: "${{ github.repository_id }}-${{ github.workflow }}-tag-update"
       cancel-in-progress: false
@@ -31,6 +31,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
+    if: "false"
     permissions:
       contents: read 
       attestations: write
