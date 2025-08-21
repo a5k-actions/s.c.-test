@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: (c) 2021 ale5000
 # SPDX-License-Identifier: LGPL-3.0-or-later OR GPL-3.0-or-later
 
-name: "ShellChecker"
+name: "Test"
 author: "ale5000"
 description: "GitHub action to execute a lint check of all shell scripts using ShellCheck."
 branding:
