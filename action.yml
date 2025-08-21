@@ -2,9 +2,9 @@
 # SPDX-FileCopyrightText: (c) 2021 ale5000
 # SPDX-License-Identifier: LGPL-3.0-or-later OR GPL-3.0-or-later
 
-name: "TestSC"
+name: "TestShC"
 author: "ale5000"
-description: "GitHub action to execute a lint check of all shell scripts using ShellCheck."
+description: "Test. Do NOT use."
 branding:
   icon: "check-circle"
   color: "green"
