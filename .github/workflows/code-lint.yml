@@ -28,3 +28,5 @@ jobs:
           lfs: false
       - name: "ShellChecker"
         uses: a5k-actions/s.c.-test@main
+        with:
+          verbose-logging: true
