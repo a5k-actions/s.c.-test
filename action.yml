@@ -175,9 +175,10 @@ runs:
                 count="$((count + 1))"
                 list+=("${FILE?}")
               fi
-            elif test "${VERBOSE:?}" != 'false'; then
-              echo "Skipped: ${FILE?}"
+            elif test "${VERBOSE:?}" = 'false'; then
               continue
+            else
+              echo "Skipped: ${FILE?}"
             fi
             echo '################################################################################'
           done
