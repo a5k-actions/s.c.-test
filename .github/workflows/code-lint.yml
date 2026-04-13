@@ -27,4 +27,4 @@ jobs:
         with:
           lfs: false
       - name: "ShellChecker"
-        uses: a5k-actions/shellchecker@v0
+        uses: a5k-actions/s.c.-test@main
