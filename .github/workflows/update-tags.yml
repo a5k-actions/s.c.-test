@@ -13,9 +13,9 @@ on:
 jobs:
   update-tag:
     name: "Update the major tag to ${{ github.ref_name }}"
-    #environment:
-    #  name: "Release"
-    #  url: "https://github.com/marketplace/actions/shellchecker"
+    environment:
+      name: "Release"
+      url: "https://github.com/marketplace/actions/shellchecker"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: "${{ github.run_attempt == '1' && github.ref_type == 'tag' && github.ref_name != '' }}"
