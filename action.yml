@@ -25,6 +25,10 @@ inputs:
     description: "List of files to ignore, the separator is: |"
     required: false
     default: "gradlew"
+  verbose-logging:
+    description: "Enable detailed logging."
+    required: false
+    default: "false"
 outputs:
   NumFilesWthIssues:
     description: "Number of files with issues"
@@ -95,6 +99,7 @@ runs:
         RUNNER_OS: "${{ runner.os }}"
         ACTION_PATH: "${{ github.action_path }}"
         EVENT_NAME: "${{ github.event_name }}"
+        VERBOSE: "${{ inputs.verbose-logging }}"
         SEVERITY: "${{ inputs.severity }}"
         ENABLE_ALL_CHECKS: "${{ inputs.enable-all-opt-checks }}"
         IGNORED_FILES: "${{ inputs.ignore-files }}"
@@ -171,7 +176,7 @@ runs:
                 count="$((count + 1))"
                 list+=("${FILE?}")
               fi
-            else
+            elif test "${VERBOSE:?}" != 'false'; then
               echo "Skipped: ${FILE?}"
             fi
           done
