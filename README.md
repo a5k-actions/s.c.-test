@@ -54,6 +54,7 @@ jobs:
 | severity              | Minimum severity of issues to display. Values: [style, info, warning, error] | `false`  |         |
 | enable-all-opt-checks | Enable all optional checks. Values: [true, false]                            | `false`  | false   |
 | ignore-files          | List of files to ignore, the separator is: &#124;                            | `false`  | gradlew |
+| verbose-logging       | Enable detailed logging. Values: [true, false]                               | `false`  | false   |
 
 <!-- action-docs-inputs -->
 

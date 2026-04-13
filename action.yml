@@ -25,6 +25,10 @@ inputs:
     description: "List of files to ignore, the separator is: |"
     required: false
     default: "gradlew"
+  verbose-logging:
+    description: "Enable detailed logging."
+    required: false
+    default: "false"
 outputs:
   NumFilesWthIssues:
     description: "Number of files with issues"
@@ -95,6 +99,7 @@ runs:
         RUNNER_OS: "${{ runner.os }}"
         ACTION_PATH: "${{ github.action_path }}"
         EVENT_NAME: "${{ github.event_name }}"
+        VERBOSE: "${{ inputs.verbose-logging }}"
         SEVERITY: "${{ inputs.severity }}"
         ENABLE_ALL_CHECKS: "${{ inputs.enable-all-opt-checks }}"
         IGNORED_FILES: "${{ inputs.ignore-files }}"
@@ -147,7 +152,6 @@ runs:
           regexp_2="s/^\(${escaped_csi}[2-9][0-9]\?m\)/ \t\1/"
 
           while read -r FILE; do
-            echo '################################################################################'
             FILE_LOWER="$(echo "${FILE}" | tr '[:upper:]' '[:lower:]')"
             to_ignore=false
             for ELEM in "${ignore_list[@]}"; do
@@ -171,9 +175,12 @@ runs:
                 count="$((count + 1))"
                 list+=("${FILE?}")
               fi
+            elif test "${VERBOSE:?}" = 'false'; then
+              continue
             else
               echo "Skipped: ${FILE?}"
             fi
+            echo '################################################################################'
           done
           list_string="$(printf '\"%s\" ' "${list[@]}")"
           unset list
@@ -183,10 +190,11 @@ runs:
           unset list_string
           return "${count}"
         }
+        printf '################################################################################\n'
         num_files_with_issues=0
         find '.' -type f \! -path './.git/*' | LC_ALL=C sort | scan_files || num_files_with_issues="$?"
 
-        printf '################################################################################\n\n'
+        printf '\n'
         if test "${num_files_with_issues:?}" -gt 0; then
           printf '::notice::%s\n' "[ShellChecker] NUMBER OF FILES WITH ISSUES: ${num_files_with_issues:?} 🐛"
           exit 1
