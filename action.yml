@@ -1,6 +1,6 @@
 ---
-# SPDX-FileCopyrightText: (c) 2021 ale5000
-# SPDX-License-Identifier: LGPL-3.0-or-later OR GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 ale5000
+# SPDX-License-Identifier: LGPL-3.0-or-later
 
 name: "TestShC"
 author: "ale5000"
@@ -37,24 +37,29 @@ runs:
   steps:
     - name: "Set up matchers"
       shell: bash
+      env:
+        ACTION_PATH: "${{ github.action_path }}"
       run: |
         # Setting up matchers...
-        action_path="${{ github.action_path }}"
-        matcher_file="${action_path:?}/.github/matchers/tty/shellcheck-matcher-legacy.json"
+        matcher_file="${ACTION_PATH:?}/.github/matchers/tty/shellcheck-matcher-legacy.json"
         if test -f "${matcher_file:?}"; then
           echo "::add-matcher::${matcher_file}"
           echo 'Matcher 1 configured.'
         fi
-        matcher_file="${action_path:?}/.github/matchers/tty/shellcheck-matcher.json"
+        matcher_file="${ACTION_PATH:?}/.github/matchers/tty/shellcheck-matcher.json"
         if test -f "${matcher_file:?}"; then
           echo "::add-matcher::${matcher_file}"
           echo 'Matcher 2 configured.'
         fi
     - name: "Download ShellCheck"
       shell: bash
+      env:
+        RUNNER_OS: "${{ runner.os }}"
+        ACTION_PATH: "${{ github.action_path }}"
+        SHELLCHECK_VER: "${{ inputs.shellcheck-version }}"
       run: |
         # Downloading ShellCheck...
-        BASE_LINE='58'
+        BASE_LINE='62'
         annotate_error()
         {
           LINE="$(("${BASH_LINENO[0]}" + "${BASE_LINE}" - 2))"
@@ -62,63 +67,67 @@ runs:
           exit "${1}"
         }
 
-        case "${{ runner.os }}" in 'Linux') current_os='linux' ;; 'macOS') current_os='darwin' ;; 'Windows') current_os='win' ;; *) annotate_error 1 ;; esac
-        action_path="${{ github.action_path }}"
-        sc_ver="${{ inputs.shellcheck-version }}"
-        base_url="https://github.com/koalaman/shellcheck/releases/download/${sc_ver:?}/"
-        if test "${current_os}" = 'win'; then archive_name="shellcheck-${sc_ver:?}.zip"; else archive_name="shellcheck-${sc_ver:?}.${current_os:?}.x86_64.tar.xz"; fi
+        case "${RUNNER_OS:?}" in 'Linux') current_os='linux' ;; 'macOS') current_os='darwin' ;; 'Windows') current_os='win' ;; *) annotate_error 1 ;; esac
+        base_url="https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VER:?}/"
+        if test "${current_os:?}" = 'win'; then archive_name="shellcheck-${SHELLCHECK_VER:?}.zip"; else archive_name="shellcheck-${SHELLCHECK_VER:?}.${current_os:?}.x86_64.tar.xz"; fi
 
         ## Installing wget (only on Windows)...
-        if test "${current_os}" = 'win'; then choco install --no-progress --yes wget 1>&- || annotate_error 2; fi
+        if test "${current_os:?}" = 'win'; then choco install --no-progress --yes wget 1>&- || annotate_error 2; fi
 
-        download_dir="${action_path:?}/our_downloads"
+        download_dir="${ACTION_PATH:?}/our_downloads"
         mkdir -p "${download_dir:?}" || annotate_error 3
         cd "${download_dir:?}" || annotate_error 4
         wget -q -O "${archive_name:?}" "${base_url:?}${archive_name:?}" || annotate_error 5
 
         archive_name="${download_dir:?}/${archive_name:?}"
-        if test "${current_os}" = 'win'; then
-          unzip -ojq "${archive_name:?}" '*' -d "${download_dir:?}/shellcheck-${sc_ver:?}/" || annotate_error 6
+        if test "${current_os:?}" = 'win'; then
+          unzip -ojq "${archive_name:?}" '*' -d "${download_dir:?}/shellcheck-${SHELLCHECK_VER:?}/" || annotate_error 6
         else
           tar -xf "${archive_name:?}" || annotate_error 6
         fi
-        mv -f "${download_dir:?}/shellcheck-${sc_ver:?}/shellcheck"* "${action_path:?}/" || annotate_error 7
-        cd "${action_path:?}" || annotate_error 8
+        mv -f "${download_dir:?}/shellcheck-${SHELLCHECK_VER:?}/shellcheck"* "${ACTION_PATH:?}/" || annotate_error 7
+        cd "${ACTION_PATH:?}" || annotate_error 8
         rm -rf "${download_dir:?}" || annotate_error 9
     - name: "Execute ShellCheck scan"
       id: "shellcheck-scan"
       shell: bash
+      env:
+        RUNNER_OS: "${{ runner.os }}"
+        ACTION_PATH: "${{ github.action_path }}"
+        EVENT_NAME: "${{ github.event_name }}"
+        SEVERITY: "${{ inputs.severity }}"
+        ENABLE_ALL_CHECKS: "${{ inputs.enable-all-opt-checks }}"
+        IGNORED_FILES: "${{ inputs.ignore-files }}"
       run: |
         # Executing ShellCheck scan...
         set -e
         # shellcheck disable=SC3040
         set -o pipefail || true
 
-        PATH="${{ github.action_path }}:${PATH:?}"
+        PATH="${ACTION_PATH:?}:${PATH:?}"
         command -v shellcheck
         shellcheck --version
 
         SHELLCHECK_OPTS='-C'
-        if test -n '${{ inputs.severity }}'; then
-          SHELLCHECK_OPTS+=' -S${{ inputs.severity }}'
+        if test -n "${SEVERITY?}"; then
+          SHELLCHECK_OPTS+=" -S${SEVERITY:?}"
         fi
-        if test '${{ github.event_name }}' = 'pull_request'; then
+        if test "${EVENT_NAME:?}" = 'pull_request'; then
           SHELLCHECK_OPTS+=' -e1091'
         else
           SHELLCHECK_OPTS+=' -x'
-          if test '${{ inputs.enable-all-opt-checks }}' != 'false'; then
+          if test "${ENABLE_ALL_CHECKS:?}" != 'false'; then
             SHELLCHECK_OPTS+=' -oall'
           fi
         fi
         export SHELLCHECK_OPTS
 
-        ignore_string='${{ inputs.ignore-files }}'
         ignore_list=()
-        if test -n "${ignore_string}"; then
-          OLDIFS="$IFS"
+        if test -n "${IGNORED_FILES?}"; then
+          OLDIFS="${IFS-}"
           IFS='|'
-          read -ra ignore_list <<< "${ignore_string}"
-          IFS="$OLDIFS"
+          read -ra ignore_list <<< "${IGNORED_FILES:?}"
+          IFS="${OLDIFS?}"
         fi
 
         is_shell_script()
@@ -148,22 +157,22 @@ runs:
               fi
             done
 
-            if $to_ignore; then
-              echo "Ignored: $FILE"
-            elif expr "$FILE_LOWER" : '^.*\.\(sh\|ash\|dash\|ksh\|bash\|bats\)$' 1> /dev/null || is_shell_script "${FILE:?}"; then
-              echo "Currently scanning: $FILE"
+            if "${to_ignore:?}"; then
+              echo "Ignored: ${FILE?}"
+            elif expr "${FILE_LOWER?}" : '^.*\.\(sh\|ash\|dash\|ksh\|bash\|bats\)$' 1> /dev/null || is_shell_script "${FILE:?}"; then
+              echo "Currently scanning: ${FILE?}"
               STATUS=0
-              if test "${{ runner.os }}" = 'Windows'; then
-                shellcheck "$FILE" | tr -d '\r' | sed -e "${regexp_1}" | sed -e "${regexp_2}" || STATUS="$?"
+              if test "${RUNNER_OS:?}" = 'Windows'; then
+                shellcheck "${FILE?}" | tr -d '\r' | sed -e "${regexp_1}" | sed -e "${regexp_2}" || STATUS="$?"
               else
-                shellcheck "$FILE" | sed -e "${regexp_1}" | sed -e "${regexp_2}" || STATUS="$?"
+                shellcheck "${FILE?}" | sed -e "${regexp_1}" | sed -e "${regexp_2}" || STATUS="$?"
               fi
               if test "${STATUS}" -ne 0; then
                 count="$((count + 1))"
-                list+=("$FILE")
+                list+=("${FILE?}")
               fi
             else
-              echo "Skipped: $FILE"
+              echo "Skipped: ${FILE?}"
             fi
           done
           list_string="$(printf '\"%s\" ' "${list[@]}")"

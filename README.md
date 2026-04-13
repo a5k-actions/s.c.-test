@@ -1,6 +1,6 @@
 <!--
-  SPDX-FileCopyrightText: (c) 2021 ale5000
-  SPDX-License-Identifier: LGPL-3.0-or-later
+  SPDX-FileCopyrightText: 2021 ale5000
+  SPDX-License-Identifier: LGPL-3.0-or-later OR GPL-3.0-or-later
   SPDX-FileType: DOCUMENTATION
 -->
 
@@ -27,7 +27,8 @@ It works under Ubuntu, macOS and Windows runners.
 ```yaml
 ---
 name: "Code lint"
-permissions: {}
+permissions:
+  contents: read # Needed to checkout the repository (only required for private repositories)
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
@@ -38,7 +39,7 @@ jobs:
 
     steps:
       - name: "Checkout sources"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: "ShellChecker"
         uses: a5k-actions/shellchecker@v0
 ```
