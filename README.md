@@ -1,6 +1,6 @@
 <!--
-  SPDX-FileCopyrightText: (c) 2021 ale5000
-  SPDX-License-Identifier: LGPL-3.0-or-later
+  SPDX-FileCopyrightText: 2021 ale5000
+  SPDX-License-Identifier: LGPL-3.0-or-later OR GPL-3.0-or-later
   SPDX-FileType: DOCUMENTATION
 -->
 
