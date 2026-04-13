@@ -1,0 +1,30 @@
+---
+# SPDX-FileCopyrightText: NONE
+# SPDX-License-Identifier: CC0-1.0
+
+name: "Code lint"
+permissions: {}
+on:
+  push:
+    paths:
+      - "**"
+    branches:
+      - "**"
+    tags:
+      - "v*.*"
+  pull_request:
+jobs:
+  shellchecker:
+    name: "ShellChecker"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # Needed to checkout the repository (only required for private repositories)
+
+    steps:
+      - name: "Checkout sources"
+        uses: actions/checkout@v6
+        with:
+          lfs: false
+      - name: "ShellChecker"
+        uses: a5k-actions/shellchecker@v0
